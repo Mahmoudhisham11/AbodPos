@@ -1,0 +1,68 @@
+.reports {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: start;
+    align-items: start;
+}
+.content {
+    width: 100%;
+    padding: 15px 2%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.filterBar {
+    width: 100%;
+}
+.inputBox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+.delBtn {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    background-color: #3570aa54;
+    font-size: 20px;
+    color: var(--main-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: .3s;
+}
+.delBtn:hover {
+    background-color: var(--main-color);
+    color: white;
+}
+.totalContainer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.totalContainer button {
+    width: 150px;
+    height: 50px;
+    background-color: rgba(132, 250, 132, 0.486);
+    border-radius: 8px;
+    border: none;
+    font-size: 25px;
+    color: green;
+    cursor: pointer;
+    transition: .3s;
+}
+.totalContainer button:hover {
+    background-color: rgb(6, 209, 6);
+    color: white;
+}
+@media(max-width: 767px) {
+    .tableContainer {
+        overflow: scroll;
+    }
+}

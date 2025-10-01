@@ -1,0 +1,167 @@
+.phones {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: start;
+    align-items: start;
+}
+.boxContainer {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: var(--background);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column  ;
+    z-index: 1;
+}
+.boxTitle {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 2%;
+}
+.boxTitle button {
+    position: fixed;
+    top: 30px;
+    left: 20px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+}
+.boxContent {
+    width: 100%;
+    padding: 0 2%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+}
+.content {
+    width: 100%;
+}
+.btns {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    padding: 30px 1%;
+}
+.btns button {
+    width: 50%;
+    height: 50px;
+    font-size: 20px;
+    background-color: var(--main-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: .3s;
+}
+.btns button:hover {
+    background-color: var(--hover-color);
+}
+.phoneContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0 1%;
+}
+.searchBox {
+    width: 100%;
+}
+.tableContainer {
+    width: 100%;
+}
+.moblieCardContainer {
+    display: none;
+}
+.addContainer {
+    width: 100%;
+    padding: 0 1%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 15px;
+}
+.inputBox {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+.addBtn {
+    width: 100%;
+    height: 50px;
+    background-color: var(--main-color);
+    border: none;
+    font-size: 20px;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 5px;
+    margin-top: 50px;
+    transition: .3s;
+}
+.addBtn:hover {
+    background-color: var(--hover-color);
+}
+.actionBtns {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+.actionBtns button {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    font-size: 20px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: .3s ;
+}
+.actionBtns button:first-child {
+    background-color: rgba(243, 83, 83, 0.411);
+    color: red;
+}
+.actionBtns button:nth-child(2) {
+    background-color: #3570aa54;
+    color: var(--main-color);
+}
+.actionBtns button:first-child:hover {
+    background-color: red;
+    color: white;
+}
+.actionBtns button:nth-child(2):hover {
+    background-color: var(--main-color);
+    color: white;
+}
+
+.totals {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media(max-width: 767px) {
+    .tableContainer {
+        display: none;
+    }
+
+}
