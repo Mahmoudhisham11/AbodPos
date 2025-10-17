@@ -83,18 +83,10 @@ function Resete() {
       <div className={styles.text}>
         <p>المدفوع: {invoice.total}$</p>
         <p>المتبقي: 0.0</p>
-        <p>عدد الاصناف:<span style={{border: '2px solid black', padding: "5px"}}>{invoice.lenth}</span></p>
-        <p>العنوان: الخصوص الشارع العمومي امام قسم الخصوص</p>
-        <p style={{ textAlign: 'center', marginTop: '5px'}}>رقم الهاتف: 01113865582</p>
+        <p>عدد الاصناف:<span style={{border: '2px solid black', padding: "5px"}}>{invoice.length}</span></p>
+        <p>العنوان: </p>
+        <p style={{ textAlign: 'center', marginTop: '5px'}}>رقم الهاتف: 0</p>
         <p style={{ textAlign: 'center', marginTop: '5px'}}>شكراً لتعاملكم معنا!</p>
-      </div>
-
-      {/* ✅ إضافة QR Code */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '15px' }}>
-        <QRCodeCanvas 
-          value="https://www.tiktok.com/@s3edahmed1"
-          size={100}
-        />
       </div>
 
       <div className={styles.btn}>

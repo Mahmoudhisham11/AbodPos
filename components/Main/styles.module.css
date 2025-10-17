@@ -82,10 +82,27 @@
 .resetTitle {
     width: 100%;
     height: fit-content;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 .resetTitle h3 {
     padding-bottom: 20px;
     color: var(--text-color);
+}
+.resetTitle button {
+    font-size: 18px;
+    padding: 5px;
+    border-radius: 8px;
+    border: none;
+    background-color:rgba(252, 57, 57, 0.281);
+    color: red;
+    cursor: pointer;
+    transition: .3s;
+}
+.resetTitle button:hover {
+    background-color: red;
+    color: white;
 }
 .orderBox {
     width: 100%;

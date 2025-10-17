@@ -260,6 +260,32 @@ function Main() {
       alert("حدث خطأ أثناء تقفيل اليوم");
     }
   };
+  const handleDeleteInvoice = async () => {
+  if (!shop) return;
+
+  const confirmDelete = window.confirm("هل أنت متأكد أنك تريد حذف الفاتورة بالكامل؟");
+  if (!confirmDelete) return;
+
+  try {
+    const q = query(collection(db, "cart"), where("shop", "==", shop));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      alert("لا توجد منتجات في الفاتورة لحذفها.");
+      return;
+    }
+
+    for (const docSnap of snapshot.docs) {
+      await deleteDoc(docSnap.ref);
+    }
+
+    alert("تم حذف الفاتورة بالكامل بنجاح ✅");
+  } catch (error) {
+    console.error("حدث خطأ أثناء حذف الفاتورة:", error);
+    alert("حدث خطأ أثناء حذف الفاتورة ❌");
+  }
+};
+
 
   return (
     <div className={styles.mainContainer}>
@@ -408,8 +434,9 @@ function Main() {
         <div className={styles.reset}>
           <div className={styles.resetTitle}>
             <h3>محتوى الفاتورة</h3>
-            <hr />
+            <button onClick={handleDeleteInvoice}>حذف الفاتورة</button>
           </div>
+          <hr />
           <div className={styles.orderBox}>
             {cart.map((item) => (
               <div className={styles.ordersContainer} key={item.id}>

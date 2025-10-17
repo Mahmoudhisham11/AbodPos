@@ -20,19 +20,19 @@ function Employees() {
     const [newEmployee, setNewEmployee] = useState("");
     const [salary, setSalary] = useState(""); 
     const [employees, setEmployees] = useState([]);
-    const userName = typeof window !== "undefined" ? localStorage.getItem('userName') : ""
+    const shop = typeof window !== "undefined" ? localStorage.getItem('shop') : ""
 
     // ✅ جلب بيانات الموظفين من Collection employees
     useEffect(() => {
-        if (!userName) return;
-        const q = query(collection(db, 'employees'), where('userName', '==', userName));
+        if (!shop) return;
+        const q = query(collection(db, 'employees'), where('shop', '==', shop));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setEmployees(data);
         });
 
         return () => unsubscribe();
-    }, [userName]);
+    }, [shop]);
 
     // ✅ اضافة موظف جديد
     const handleAddEmployee = async () => {
@@ -46,7 +46,8 @@ function Employees() {
                 name: newEmployee.trim(),
                 salary: salary.trim(),
                 createdAt: new Date(),
-                userName,
+                userName: shop,
+                shop,
             });
             alert("تمت إضافة الموظف بنجاح");
             setNewEmployee("");
