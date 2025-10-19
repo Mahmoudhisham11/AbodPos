@@ -2,62 +2,103 @@
     width: 100%;
     min-height: 100vh;
     display: flex;
-    justify-content: start;
-    align-items: start;
+    justify-content: flex-start;
+    align-items: flex-start;
+    background-color: #f5f6fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
 }
+
+/* نافذة التعديل */
 .boxContainer {
     position: fixed;
     top: 0;
     width: 100%;
     height: 100vh;
-    background-color: var(--background);
+    background-color: rgba(0,0,0,0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column  ;
-    z-index: 1;
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
 }
 .boxTitle {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 30px 2%;
+    padding-bottom: 20px;
+}
+.boxTitle h2 {
+    font-size: 24px;
+    color: #222;
 }
 .boxTitle button {
-    position: fixed;
-    top: 30px;
-    left: 20px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
     background-color: transparent;
     border: none;
+    font-size: 25px;
     cursor: pointer;
-    font-size: 20px;
+    color: #fff;
 }
 .boxContent {
     width: 100%;
-    padding: 0 2%;
+    max-width: 900px;
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
-    gap: 10px;
+    gap: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
 }
-.content {
-    width: 100%;
-}
-.btns {
+
+/* الحقول */
+.inputBox {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 15px;
-    padding: 30px 1%;
+}
+
+/* أزرار */
+.addBtn {
+    width: 100%;
+    max-width: 300px;
+    margin: 20px auto 0 auto;
+    height: 45px;
+    background-color: #3570aa;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.addBtn:hover {
+    background-color: #2b5c8a;
+}
+
+/* الصفحة الرئيسية */
+.content {
+    width: 100%;
+    padding: 20px;
+}
+.btns {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
 }
 .btns button {
-    width: 50%;
-    height: 50px;
-    font-size: 20px;
-    background-color: var(--main-color);
+    flex: 1;
+    height: 45px;
+    font-size: 16px;
+    background-color: #3570aa;
     color: white;
     border: none;
     border-radius: 8px;
@@ -65,58 +106,58 @@
     transition: .3s;
 }
 .btns button:hover {
-    background-color: var(--hover-color);
+    background-color: #2b5c8a;
 }
+
+/* عرض المنتجات */
 .phoneContainer {
     width: 100%;
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
     gap: 20px;
-    padding: 0 1%;
 }
 .searchBox {
     width: 100%;
+    margin-bottom: 10px;
 }
-.tableContainer {
-    width: 100%;
-}
-.moblieCardContainer {
-    display: none;
-}
-.addContainer {
-    width: 100%;
-    padding: 0 1%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    gap: 15px;
-}
-.inputBox {
+.totals {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 15px;
-}
-.addBtn {
-    width: 100%;
-    height: 50px;
-    background-color: var(--main-color);
-    border: none;
-    font-size: 20px;
-    color: white;
+    padding: 10px 0;
+    background-color: #e1e8f0;
     border-radius: 8px;
-    cursor: pointer;
-    padding: 5px;
-    margin-top: 50px;
-    transition: .3s;
+    font-weight: 600;
 }
-.addBtn:hover {
-    background-color: var(--hover-color);
+
+/* الجدول */
+.tableContainer {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 8px;
 }
+.tableContainer table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1000px;
+}
+.tableContainer thead {
+    background-color: #3570aa;
+    color: #fff;
+}
+.tableContainer th,
+.tableContainer td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    font-size: 13px;
+}
+.tableContainer tbody tr:hover {
+    background-color: #f1f6fc;
+}
+
+/* أزرار الجدول */
 .actionBtns {
     display: flex;
     justify-content: center;
@@ -126,42 +167,49 @@
 .actionBtns button {
     width: 35px;
     height: 35px;
-    border-radius: 8px;
-    font-size: 20px;
+    border-radius: 6px;
+    font-size: 16px;
     border: none;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: .3s ;
+    transition: 0.3s;
 }
 .actionBtns button:first-child {
-    background-color: rgba(243, 83, 83, 0.411);
+    background-color: rgba(243, 83, 83, 0.4);
     color: red;
 }
 .actionBtns button:nth-child(2) {
-    background-color: #3570aa54;
-    color: var(--main-color);
+    background-color: #3570aa33;
+    color: #3570aa;
 }
 .actionBtns button:first-child:hover {
     background-color: red;
     color: white;
 }
 .actionBtns button:nth-child(2):hover {
-    background-color: var(--main-color);
+    background-color: #3570aa;
     color: white;
 }
 
-.totals {
+/* إضافة منتج */
+.addContainer {
     width: 100%;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 10px;
 }
 
 @media(max-width: 767px) {
     .tableContainer {
-        display: none;
+        min-width: 700px;
     }
-
+    .btns {
+        flex-direction: column;
+    }
+    .btns button {
+        width: 100%;
+    }
 }

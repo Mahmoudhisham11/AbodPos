@@ -11,7 +11,7 @@ import { GoGear } from "react-icons/go";
 import { BiLogOutCircle } from "react-icons/bi";
 import { TbReportSearch } from "react-icons/tb";
 import { TbReportMoney } from "react-icons/tb";
-import { IoPersonSharp } from "react-icons/io5";
+import { IoPersonOutline } from "react-icons/io5";
 import { IoIosCloseCircle } from "react-icons/io";
 
 function SideBar({openSideBar, setOpenSideBar}) {
@@ -23,7 +23,6 @@ function SideBar({openSideBar, setOpenSideBar}) {
     }
     return(
         <div className={openSideBar ? `${styles.sideBar} ${styles.active}` : `${styles.sideBar}`}>
-            
             <div className={styles.title}>
                 <h2>سامسونج عبود</h2>
                 <button className={styles.closeBtn} onClick={() => setOpenSideBar(false)}><IoIosCloseCircle/></button>
@@ -46,7 +45,7 @@ function SideBar({openSideBar, setOpenSideBar}) {
                     <span>المصاريف</span>
                 </Link>
                 <Link href={'/employees'} className={styles.actionLinks}>
-                    <span><IoPersonSharp/></span>
+                    <span><IoPersonOutline/></span>
                     <span>الموظفين</span>
                 </Link>
                 <Link href={'/debts'} className={styles.actionLinks}>
@@ -58,7 +57,7 @@ function SideBar({openSideBar, setOpenSideBar}) {
                     <span>التقارير</span>
                 </Link>
             </div>
-            <div className={styles.actions}>
+            <div className={styles.logout}>
                 <Link href={'/'} className={styles.actionLinks} onClick={handleLogout}>
                     <span><BiLogOutCircle/></span>
                     <span>تسجيل الخروج</span>

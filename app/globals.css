@@ -20,35 +20,32 @@ body {
 }
 .inputContainer {
   width: 100%;
-  height: 50px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 10px;
-  direction: rtl;
-  background-color: white;
-  padding: 0 2%;
+  background: #fff;
   border-radius: 8px;
+  padding: 10px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 25px;
+  transition: box-shadow 0.2s ease;
 }
 .inputContainer label {
-  font-size: 20px;
-  color: black;
+    font-size: 20px;
+    color: var(--main-color);
 }
-.inputContainer input {
-  width: 100%;
-  outline: none;
-  border: none;
-  padding: 7px;
-  font-size: 20px;
-  background-color: transparent;
-}
+.inputContainer input,
 .inputContainer select {
-  width: 100%;
-  outline: none;
-  padding: 7px;
-  border-radius: 8px;
   border: none;
-  font-size: 20px;
+  outline: none;
+  flex: 1;
+  font-size: 16px;
+  color: #333;
+  background: transparent;
+}
+.inputContainer input::placeholder {
+  color: #aaa;
+  font-size: 15px;
 }
 table {
   width: 100%;
