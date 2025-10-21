@@ -4,6 +4,7 @@ import styles from "./styles.module.css";
 import { useState, useEffect } from "react";
 import { MdPersonAddAlt1 } from "react-icons/md";
 import { FaRegTrashAlt } from "react-icons/fa";
+import { TbReportSearch } from "react-icons/tb";
 import {
     addDoc,
     collection,
@@ -14,6 +15,7 @@ import {
     doc
 } from "firebase/firestore";
 import { db } from "../firebase";
+import Link from "next/link";
 
 function Employees() {
     const [active, setActive] = useState(false);
@@ -105,6 +107,9 @@ function Employees() {
                                             >
                                                 <FaRegTrashAlt />
                                             </button>
+                                            <Link href={`/employeeReport/${emp.id}`}>
+                                                <TbReportSearch />
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}

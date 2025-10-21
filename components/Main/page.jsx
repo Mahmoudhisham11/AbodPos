@@ -10,7 +10,7 @@ import { FaUser } from "react-icons/fa";
 import { FaPhone } from "react-icons/fa";
 import { FaBars } from "react-icons/fa6";
 import {
-  collection, query, where, onSnapshot, addDoc, updateDoc, doc, deleteDoc, getDocs, getDoc
+  collection, query, where, onSnapshot, addDoc, updateDoc, doc, deleteDoc, getDocs, getDoc, writeBatch
 } from "firebase/firestore";
 import { db } from "@/app/firebase";
 import { useRouter } from "next/navigation";
@@ -101,28 +101,45 @@ function Main() {
   }, [shop]);
 
   const handleAddToCart = async (product) => {
-    const customPrice = Number(customPrices[product.id]);
-    const finalPrice = !isNaN(customPrice) && customPrice > 0 ? customPrice : product.sellPrice;
-    await addDoc(collection(db, "cart"), {
+    let cartData = {
       name: product.name,
-      sellPrice: finalPrice,
+      sellPrice: Number(customPrices[product.id]) || product.sellPrice,
       productPrice: product.sellPrice,
-      buyPrice: product.buyPrice || 0,
-      serial: product.serial || 0,
-      code: product.code,
-      battery: product.battery || 0,
-      storage: product.storage || 0,
-      color: product.color || 0,
-      box: product.box || 0,
-      condition: product.condition || 0,
-      sim: product.sim || 0,
-      tax: product.tax || 0,
       quantity: 1,
       type: product.type,
-      total: finalPrice,
+      total: Number(customPrices[product.id]) || product.sellPrice,
       date: new Date(),
       shop: shop,
-    });
+    };
+
+    if (product.type === "phone") {
+      cartData = {
+        ...cartData,
+        battery: product.battery || "80",
+        buyPrice: product.buyPrice || 1000,
+        code: product.code,
+        color: product.color || "ابيض",
+        condition: product.condition || "مستعمل",
+        includedItems: product.includedItems || ["الكارتونة", "الشاحن", "السماعة"],
+        notes: product.notes || "كسر ففي الشاشة",
+        owner: product.owner || "سعيد",
+        ownerNumber: product.ownerNumber || "0109702654",
+        ram: product.ram || "8",
+        serial: product.serial || "1234565165621651",
+        sim: product.sim || "3",
+        storage: product.storage || "128",
+        tax: product.tax || "بضريبة",
+        taxValue: product.taxValue || 1000,
+      };
+    } else {
+      cartData = {
+        ...cartData,
+        buyPrice: product.buyPrice || 0,
+        code: product.code,
+      };
+    }
+
+    await addDoc(collection(db, "cart"), cartData);
 
     setCustomPrices(prev => {
       const updated = { ...prev };
@@ -145,18 +162,13 @@ function Main() {
     await deleteDoc(doc(db, "cart", id));
   };
 
-  // subtotal from cart (before discount)
   const subtotal = cart.reduce((acc, item) => acc + (item.sellPrice * (item.quantity || 1)), 0);
-
-  // profit calculation: (sellPrice - buyPrice) * quantity for each item
   const profit = cart.reduce((acc, item) => {
     const buy = Number(item.buyPrice || 0);
     const sell = Number(item.sellPrice || 0);
     const qty = Number(item.quantity || 1);
     return acc + ((sell - buy) * qty);
   }, 0);
-
-  // final total after appliedDiscount (ensure not negative)
   const finalTotal = Math.max(0, subtotal - appliedDiscount);
 
   const filteredProducts = products.filter((p) => {
@@ -211,7 +223,7 @@ function Main() {
     setDiscountNotes("");
   };
 
-  const totalAmount = subtotal; // kept for compatibility
+  const totalAmount = subtotal;
 
   const handleSaveReport = async () => {
     if (isSaving) return;
@@ -227,7 +239,7 @@ function Main() {
     }
 
     try {
-      // update product quantities or delete when equal
+      // تحديث أو حذف المنتجات من المخزن
       for (const item of cart) {
         const q = query(
           collection(db, "products"),
@@ -293,6 +305,7 @@ function Main() {
         }));
       }
 
+      // مسح السلة بعد الحفظ
       const qCart = query(collection(db, "cart"), where('shop', '==', shop));
       const cartSnapshot = await getDocs(qCart);
       for (const docSnap of cartSnapshot.docs) {
@@ -301,7 +314,7 @@ function Main() {
 
       alert("تم حفظ التقرير بنجاح");
 
-      // reset applied discount after saving
+      // إعادة ضبط الخصم
       setAppliedDiscount(0);
       setDiscountInput(0);
       setDiscountNotes("");
@@ -318,26 +331,39 @@ function Main() {
   };
 
   const handleCloseDay = async () => {
-    try {
-      const q = query(collection(db, "dailySales"), where("shop", "==", shop));
-      const snapshot = await getDocs(q);
-      if (snapshot.empty) {
-        alert("لا يوجد عمليات لتقفيلها اليوم");
-        return;
-      }
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data();
-        await addDoc(collection(db, "reports"), data);
-      }
-      for (const docSnap of snapshot.docs) {
-        await deleteDoc(docSnap.ref);
-      }
-      alert("تم تقفيل اليوم بنجاح ✅");
-    } catch (error) {
-      console.error("خطأ أثناء تقفيل اليوم:", error);
-      alert("حدث خطأ أثناء تقفيل اليوم");
+  try {
+    const q = query(collection(db, "dailySales"), where("shop", "==", shop));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      alert("لا يوجد عمليات لتقفيلها اليوم");
+      return;
     }
-  };
+
+    // استخدم Batch لتجميع العمليات لتحسين الأداء
+    const batch = writeBatch(db);
+
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data();
+
+      // أضف الوثيقة إلى مجموعة التقارير (reports) باستخدام Batch
+      const reportRef = doc(collection(db, "reports"));
+      batch.set(reportRef, data);
+
+      // احذف مستند dailySales الأصلي من خلال Batch
+      batch.delete(docSnap.ref);
+    }
+
+    // نفذ كل العمليات دفعة واحدة
+    await batch.commit();
+
+    alert("تم تقفيل اليوم بنجاح ✅");
+  } catch (error) {
+    console.error("خطأ أثناء تقفيل اليوم:", error);
+    alert("حدث خطأ أثناء تقفيل اليوم");
+  }
+};
+
 
   const handleDeleteInvoice = async () => {
     if (!shop) return;
@@ -353,7 +379,6 @@ function Main() {
       for (const docSnap of snapshot.docs) {
         await deleteDoc(docSnap.ref);
       }
-      // بعد حذف الفاتورة نزيل الخصم المحلي
       handleClearDiscount();
       alert("تم حذف الفاتورة بالكامل بنجاح ✅");
     } catch (error) {
@@ -368,7 +393,6 @@ function Main() {
     return d.toLocaleString("ar-EG", { dateStyle: "short", timeStyle: "short" });
   };
 
-  // ✅ حساب عدد الفواتير، إجمالي المبيعات، وأنشط موظف
   const filteredInvoices = dailySales.filter(inv =>
     inv.clientName?.toLowerCase().includes(searchClient.toLowerCase())
   );
@@ -381,7 +405,7 @@ function Main() {
     }
   });
   const topEmployee =
-    Object.entries(employeeSales).sort((a, b) => b[1] - a[1])[0]?.[0] || "لا يوجد موظفين نشطين";
+    Object.entries(employeeSales).sort((a, b) => b[1] - a[1])[0]?.[0] || "لا يوجد موظفين";
 
   const handleReturnProduct = async (item, invoiceId) => {
     try {
@@ -394,20 +418,14 @@ function Main() {
       const snapshot = await getDocs(q);
 
       if (!snapshot.empty) {
-        // ✅ المنتج موجود — زود الكمية
         const docRef = snapshot.docs[0].ref;
         const existingData = snapshot.docs[0].data();
         const updatedQuantity = existingData.quantity + item.quantity;
         await updateDoc(docRef, { quantity: updatedQuantity });
       } else {
-        // 🚀 المنتج غير موجود — أنشئ منتج جديد
-        await addDoc(collection(db, "products"), {
-          ...item,
-          date: new Date(),
-        });
+        await addDoc(collection(db, "products"), item);
       }
 
-      // 📦 تحديث الفاتورة في dailySales
       const invoiceRef = doc(db, "dailySales", invoiceId);
       const invoiceSnap = await getDoc(invoiceRef);
 
@@ -416,27 +434,21 @@ function Main() {
         const updatedCart = invoiceData.cart.filter((p) => p.code !== item.code);
 
         if (updatedCart.length > 0) {
-          // 🧮 إعادة حساب الإجمالي بعد حذف المنتج
           const newTotal = updatedCart.reduce(
             (sum, p) => sum + (p.sellPrice * p.quantity || 0),
             0
           );
-
-          // إعادة حساب الربح إن وُجد
           const newProfit = updatedCart.reduce(
             (sum, p) => sum + ((p.sellPrice - (p.buyPrice || 0)) * (p.quantity || 1)),
             0
           );
-
           await updateDoc(invoiceRef, {
             cart: updatedCart,
             total: newTotal,
             profit: newProfit,
           });
-
           alert(`✅ تم إرجاع ${item.name} بنجاح وحذفه من الفاتورة!`);
         } else {
-          // 🗑️ لو الفاتورة بقت فاضية نحذفها كلها
           await deleteDoc(invoiceRef);
           alert(`✅ تم إرجاع ${item.name} وحُذفت الفاتورة لأنها أصبحت فارغة.`);
         }
@@ -448,7 +460,6 @@ function Main() {
       alert("❌ حدث خطأ أثناء إرجاع المنتج");
     }
   };
-
 
   return (
     <div className={styles.mainContainer}>
@@ -491,7 +502,8 @@ function Main() {
           {filteredInvoices.length === 0 ? (
             <p>لا توجد عمليات بعد اليوم</p>
           ) : (
-            <table>
+            <div className={styles.tableContainer}>
+              <table>
               <thead>
                 <tr>
                   <th>العميل</th>
@@ -517,71 +529,75 @@ function Main() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
 
           {selectedInvoice && (
-            <div className={styles.invoiceSidebar}>
-              <div className={styles.sidebarHeader}>
-                <h4>فاتورة العميل</h4>
-                <button onClick={() => setSelectedInvoice(null)}>
-                  <IoIosCloseCircle size={22} />
-                </button>
-              </div>
-
-              <div className={styles.sidebarInfo}>
-                <p><strong>👤 العميل:</strong> {selectedInvoice.clientName || "بدون اسم"}</p>
-                <p><strong>📞 الهاتف:</strong> {selectedInvoice.phone || "-"}</p>
-                <p><strong>💼 الموظف:</strong> {selectedInvoice.employee || "غير محدد"}</p>
-                <p><strong>🕒 التاريخ:</strong> {formatDate(selectedInvoice.date)}</p>
-
-                {/* ✅ الخصم، ملاحظات الخصم، الربح قبل الإجمالي */}
-                {selectedInvoice.profit !== undefined && (
-                  <p><strong>📈 ربح الفاتورة:</strong> {selectedInvoice.profit} جنيه</p>
-                )}
-                {selectedInvoice.discount > 0 && (
-                  <p>
-                    <strong>🔖 الخصم:</strong> {selectedInvoice.discount} جنيه
-                    {selectedInvoice.discountNotes ? ` (ملاحظة: ${selectedInvoice.discountNotes})` : ""}
-                  </p>
-                )}
-                <p><strong>💰 الإجمالي:</strong> {selectedInvoice.total} جنيه</p>
-              </div>
-
-              <div className={styles.sidebarProducts}>
-                <h5>المنتجات</h5>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>المنتج</th>
-                      <th>السعر</th>
-                      <th>الكمية</th>
-                      <th>السريال</th>
-                      <th>إجراء</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedInvoice.cart.map((item, idx) => (
-                      <tr key={idx}>
-                        <td>{item.name}</td>
-                        <td>{item.sellPrice}</td>
-                        <td>{item.quantity}</td>
-                        <td>{item.serial || "-"}</td>
-                        <td>
-                          <button
-                            className={styles.returnBtn}
-                            onClick={() => handleReturnProduct(item, selectedInvoice.id)}
-                          >
-                            مرتجع
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+          <div className={styles.invoiceSidebar}>
+            <div className={styles.sidebarHeader}>
+              <h4>فاتورة العميل</h4>
+              <button onClick={() => setSelectedInvoice(null)}>
+                <IoIosCloseCircle size={22} />
+              </button>
             </div>
-          )}
+
+            <div className={styles.sidebarInfo}>
+              <p><strong>👤 العميل:</strong> {selectedInvoice.clientName || "بدون اسم"}</p>
+              <p><strong>📞 الهاتف:</strong> {selectedInvoice.phone || "-"}</p>
+              <p><strong>💼 الموظف:</strong> {selectedInvoice.employee || "غير محدد"}</p>
+              <p><strong>🕒 التاريخ:</strong> {formatDate(selectedInvoice.date)}</p>
+
+              {/* ✅ الخصم، ملاحظات الخصم، الربح قبل الإجمالي */}
+              {selectedInvoice.profit !== undefined && (
+                <p><strong>📈 ربح الفاتورة:</strong> {selectedInvoice.profit} جنيه</p>
+              )}
+              {selectedInvoice.discount > 0 && (
+                <p>
+                  <strong>🔖 الخصم:</strong> {selectedInvoice.discount} جنيه
+                  {selectedInvoice.discountNotes ? ` (ملاحظة: ${selectedInvoice.discountNotes})` : ""}
+                </p>
+              )}
+              <p><strong>💰 الإجمالي:</strong> {selectedInvoice.total} جنيه</p>
+            </div>
+
+            <div className={styles.sidebarProducts}>
+              <h5>المنتجات</h5>
+              <table>
+                <thead>
+                  <tr>
+                    <th>المنتج</th>
+                    <th>السعر</th>
+                    <th>الكمية</th>
+                    <th>السريال</th>
+                    <th>إجراء</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedInvoice.cart.map((item, idx) => (
+                    <tr key={idx}>
+                      <td>{item.name}</td>
+                      <td>{item.sellPrice}</td>
+                      <td>{item.quantity}</td>
+                      <td>{item.serial || "-"}</td>
+                      <td>
+                        <button
+                          className={styles.returnBtn}
+                          onClick={() => handleReturnProduct(item, selectedInvoice.id)}
+                        >
+                          مرتجع
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+
         </div>
+
       </div>
 
       {/* باقي الكود كما هو بدون حذف */}

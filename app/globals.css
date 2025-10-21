@@ -19,6 +19,7 @@ body {
   min-height: 100vh;
 }
 .inputContainer {
+  background-color: red;
   width: 100%;
   display: flex;
   align-items: center;
@@ -27,7 +28,6 @@ body {
   border-radius: 8px;
   padding: 10px 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 25px;
   transition: box-shadow 0.2s ease;
 }
 .inputContainer label {

@@ -58,6 +58,10 @@ function SideBar({openSideBar, setOpenSideBar}) {
                 </Link>
             </div>
             <div className={styles.logout}>
+                <Link href={'/settings'} className={styles.actionLinks}>
+                    <span><GoGear/></span>
+                    <span>الاعدادات</span>
+                </Link>
                 <Link href={'/'} className={styles.actionLinks} onClick={handleLogout}>
                     <span><BiLogOutCircle/></span>
                     <span>تسجيل الخروج</span>
