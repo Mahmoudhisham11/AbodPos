@@ -3,17 +3,48 @@ import SideBar from "@/components/SideBar/page";
 import styles from "./styles.module.css";
 import { useEffect, useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
-import { addDoc, collection, deleteDoc, doc, onSnapshot, getDocs, query, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, onSnapshot, getDocs, query, where, getDoc } from "firebase/firestore";
 import { db } from "@/app/firebase";
 import { GiReceiveMoney } from "react-icons/gi";
 import { FaQuestion } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 function Masrofat() {
+    const router = useRouter()
+    const [auth, setAuth] = useState(false)
+    const [loading, setLoading] = useState(true)
     const [active, setActive] = useState(false);
     const [masrof, setMasrof] = useState('');
     const [reason, setReason] = useState('');
     const [shop, setShop] = useState('')
     const [masrofatList, setMasrofatList] = useState([]);
+
+    useEffect(() => {
+    const checkLock = async() => {
+      const userName = localStorage.getItem('userName')
+      if(!userName) {
+        router.push('/')
+        return
+      }
+      const q = query(collection(db, 'users'), where('userName', '==', userName))
+      const querySnapshot = await getDocs(q)
+      if(!querySnapshot.empty) {
+        const user = querySnapshot.docs[0].data()
+        if(user.permissions.masrofat === true) {
+          alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
+          router.push('/')
+          return
+        }else {
+          setAuth(true)
+        }
+      }else {
+        router.push('/')
+        return
+      }
+      setLoading(false)
+    }
+    checkLock()
+  }, [])
 
     // عرض البيانات تلقائيًا
     useEffect(() => {
@@ -74,6 +105,8 @@ function Masrofat() {
     };
 
     const total = masrofatList.reduce((acc, item) => acc + Number(item.masrof || 0), 0);
+    if (loading) return <p>🔄 جاري التحقق...</p>;
+    if (!auth) return null;
 
     return (
         <div className={styles.masrofat}>

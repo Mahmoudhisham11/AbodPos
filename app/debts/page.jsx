@@ -16,8 +16,12 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 function Debts() {
+  const router = useRouter()
+  const [auth, setAuth] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [active, setActive] = useState(false);
   const [searchCode, setSearchCode] = useState("");
   const [form, setForm] = useState({
@@ -32,6 +36,33 @@ function Debts() {
 
   const shop =
     typeof window !== "undefined" ? localStorage.getItem("shop") : "";
+
+  useEffect(() => {
+      const checkLock = async() => {
+        const userName = localStorage.getItem('userName')
+        if(!userName) {
+          router.push('/')
+          return
+        }
+        const q = query(collection(db, 'users'), where('userName', '==', userName))
+        const querySnapshot = await getDocs(q)
+        if(!querySnapshot.empty) {
+          const user = querySnapshot.docs[0].data()
+          if(user.permissions.debts === true) {
+            alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
+            router.push('/')
+            return
+          }else {
+            setAuth(true)
+          }
+        }else {
+          router.push('/')
+          return
+        }
+        setLoading(false)
+      }
+      checkLock()
+    }, [])
 
   useEffect(() => {
     if (!shop) return;
@@ -87,6 +118,9 @@ function Debts() {
   const filteredCustomers = customers.filter((c) =>
     c.name.toLowerCase().includes(searchCode.toLowerCase())
   );
+
+  if (loading) return <p>🔄 جاري التحقق...</p>;
+  if (!auth) return null;
 
   return (
     <div className={styles.debts}>

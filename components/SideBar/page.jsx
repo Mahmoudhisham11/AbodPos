@@ -12,7 +12,9 @@ import { BiLogOutCircle } from "react-icons/bi";
 import { TbReportSearch } from "react-icons/tb";
 import { TbReportMoney } from "react-icons/tb";
 import { IoPersonOutline } from "react-icons/io5";
+import { CiWallet } from "react-icons/ci";
 import { IoIosCloseCircle } from "react-icons/io";
+import { GoGraph } from "react-icons/go";
 
 function SideBar({openSideBar, setOpenSideBar}) {
     const handleLogout = () => {
@@ -55,6 +57,14 @@ function SideBar({openSideBar, setOpenSideBar}) {
                 <Link href={'/reports'} className={styles.actionLinks}>
                     <span><TbReportSearch/></span>
                     <span>التقارير</span>
+                </Link>
+                <Link href={'/balance'} className={styles.actionLinks}>
+                    <span><GoGraph /></span>
+                    <span>الارصدة</span>
+                </Link>
+                <Link href={'/https://cashatabod.netlify.app/'} className={styles.actionLinks}>
+                    <span><CiWallet/></span>
+                    <span>برنامج كاشات</span>
                 </Link>
             </div>
             <div className={styles.logout}>

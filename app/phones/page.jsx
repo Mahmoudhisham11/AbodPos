@@ -27,13 +27,18 @@ import {
   deleteDoc,
   doc,
   getDocs,
-  updateDoc 
+  updateDoc,
+  getDoc
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { useRouter } from "next/navigation";
 
 function Phones() {
+  const router = useRouter()
   const [editId, setEditId] = useState(null); // لو فيه تعديل
-  const [active, setActive] = useState(false); // عرض إضافة جديد
+  const [active, setActive] = useState(false);
+  const [auth, setAuth] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   // داخل الـ state form
   const [form, setForm] = useState({
@@ -61,6 +66,33 @@ function Phones() {
   const shop = typeof window !== "undefined" ? localStorage.getItem("shop") : "";
 
   useEffect(() => {
+    const checkLock = async() => {
+      const userName = localStorage.getItem('userName')
+      if(!userName) {
+        router.push('/')
+        return
+      }
+      const q = query(collection(db, 'users'), where('userName', '==', userName))
+      const querySnapshot = await getDocs(q)
+      if(!querySnapshot.empty) {
+        const user = querySnapshot.docs[0].data()
+        if(user.permissions.phones === true) {
+          alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
+          router.push('/')
+          return
+        }else {
+          setAuth(true)
+        }
+      }else {
+        router.push('/')
+        return
+      }
+      setLoading(false)
+    }
+    checkLock()
+  }, [])
+
+  useEffect(() => {
     if (!shop) return;
     const productsRef = collection(db, "products");
     const q = query(productsRef, where("shop", "==", shop), where('type', '==', 'phone'));
@@ -74,9 +106,21 @@ function Phones() {
     return () => unsubscribe();
   }, [shop]);
 
-  const filteredProducts = searchCode
-    ? products.filter(p => p.name?.toLowerCase().includes(searchCode.toLowerCase()))
-    : products;
+  // ✅ تعديل الفلترة لتشمل (اسم المنتج - اسم التاجر - رقم التاجر - البطارية - الرام - الحالة)
+const filteredProducts = searchCode
+  ? products.filter((p) => {
+      const query = searchCode.toLowerCase();
+      return (
+        p.name?.toLowerCase().includes(query) ||
+        p.owner?.toLowerCase().includes(query) ||
+        p.ownerNumber?.toLowerCase().includes(query) ||
+        p.battery?.toLowerCase().includes(query) ||
+        p.ram?.toLowerCase().includes(query) ||
+        p.condition?.toLowerCase().includes(query)
+      );
+    })
+  : products;
+
 
   const getNextCode = async () => {
     const q = query(collection(db, "products"), where("shop", "==", shop));
@@ -259,6 +303,9 @@ function Phones() {
   const totalBuy = filteredProducts.reduce((acc, product) => acc + Number(product.buyPrice || 0), 0);
   const totalSell = filteredProducts.reduce((acc, product) => acc + Number(product.sellPrice || 0), 0);
 
+  if (loading) return <p>🔄 جاري التحقق...</p>;
+  if (!auth) return null;
+
   return (
     <div className={styles.phones}>
       <SideBar />
@@ -273,7 +320,13 @@ function Phones() {
             <div className={styles.searchBox}>
               <div className="inputContainer">
                 <label><CiSearch /></label>
-                <input type="text" list="code" placeholder="ابحث بالاسم" value={searchCode} onChange={(e) => setSearchCode(e.target.value)}/>
+                  <input
+                    type="text"
+                    list="code"
+                    placeholder="ابحث بالاسم، التاجر، رقم التاجر، البطارية، الرام أو الحالة"
+                    value={searchCode}
+                    onChange={(e) => setSearchCode(e.target.value)}
+                  />
                 <datalist id="code">
                   {products.map((product) => (<option key={product.id} value={product.name} />))}
                 </datalist>

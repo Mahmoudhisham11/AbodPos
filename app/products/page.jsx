@@ -18,17 +18,22 @@ import {
   where,
   onSnapshot,
   Timestamp,
-  updateDoc
+  updateDoc,
+  getDoc
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { useRouter } from "next/navigation";
 
 function Products() {
+  const router = useRouter()
   const [active, setActive] = useState(false); // false = عرض المنتجات, true = إضافة, "edit" = تعديل
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchCode, setSearchCode] = useState("");
   const [totalBuy, setTotalBuy] = useState(0);
   const [totalSell, setTotalSell] = useState(0);
+  const [auth, setAuth] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const [form, setForm] = useState({
     name: "",
@@ -38,6 +43,33 @@ function Products() {
   });
 
   const [editId, setEditId] = useState(null); // ✅ ID المنتج اللي بيتعدل
+
+  useEffect(() => {
+    const checkLock = async() => {
+      const userName = localStorage.getItem('userName')
+      if(!userName) {
+        router.push('/')
+        return
+      }
+      const q = query(collection(db, 'users'), where('userName', '==', userName))
+      const querySnapshot = await getDocs(q)
+      if(!querySnapshot.empty) {
+        const user = querySnapshot.docs[0].data()
+        if(user.permissions.products === true) {
+          alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
+          router.push('/')
+          return
+        }else {
+          setAuth(true)
+        }
+      }else {
+        router.push('/')
+        return
+      }
+      setLoading(false)
+    }
+    checkLock()
+  }, [])
 
   useEffect(() => {
     const shop = localStorage.getItem("shop");
@@ -242,6 +274,9 @@ function Products() {
       console.error("❌ خطأ أثناء التحديث:", err);
     }
   };
+
+  if (loading) return <p>🔄 جاري التحقق...</p>;
+  if (!auth) return null;
 
   return (
     <div className={styles.products}>

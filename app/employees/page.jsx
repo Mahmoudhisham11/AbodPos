@@ -12,17 +12,50 @@ import {
     query,
     where,
     deleteDoc,
+    getDoc,
+    getDocs,
     doc
 } from "firebase/firestore";
 import { db } from "../firebase";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 function Employees() {
+    const router = useRouter()
+    const [auth, setAuth] = useState(false)
+    const [loading, setLoading] = useState(true)
     const [active, setActive] = useState(false);
     const [newEmployee, setNewEmployee] = useState("");
     const [salary, setSalary] = useState(""); 
     const [employees, setEmployees] = useState([]);
     const shop = typeof window !== "undefined" ? localStorage.getItem('shop') : ""
+
+    useEffect(() => {
+    const checkLock = async() => {
+      const userName = localStorage.getItem('userName')
+      if(!userName) {
+        router.push('/')
+        return
+      }
+      const q = query(collection(db, 'users'), where('userName', '==', userName))
+      const querySnapshot = await getDocs(q)
+      if(!querySnapshot.empty) {
+        const user = querySnapshot.docs[0].data()
+        if(user.permissions.employees === true) {
+          alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
+          router.push('/')
+          return
+        }else {
+          setAuth(true)
+        }
+      }else {
+        router.push('/')
+        return
+      }
+      setLoading(false)
+    }
+    checkLock()
+  }, [])
 
     // ✅ جلب بيانات الموظفين من Collection employees
     useEffect(() => {
@@ -75,6 +108,9 @@ function Employees() {
         }
     };
 
+    if (loading) return <p>🔄 جاري التحقق...</p>;
+    if (!auth) return null;
+
     return (
         <div className={styles.employees}>
             <SideBar />
@@ -107,7 +143,7 @@ function Employees() {
                                             >
                                                 <FaRegTrashAlt />
                                             </button>
-                                            <Link href={`/employeeReport/${emp.id}`}>
+                                            <Link className={styles.reportBtn} href={`/employeeReport/${emp.id}`}>
                                                 <TbReportSearch />
                                             </Link>
                                         </td>

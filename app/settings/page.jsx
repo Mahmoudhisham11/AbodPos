@@ -2,11 +2,15 @@
 import { useState, useEffect } from "react";
 import SideBar from "@/components/SideBar/page";
 import styles from "./styles.module.css";
-import { collection, getDocs, doc, updateDoc, getDoc, setDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, getDoc, setDoc, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { VscPercentage } from "react-icons/vsc";
+import { useRouter } from "next/navigation";
 
 export default function Settings() {
+  const router = useRouter()
+  const [auth, setAuth] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("usersPermissions");
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState("");
@@ -23,6 +27,33 @@ export default function Settings() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [percentage, setPercentage] = useState(""); // ✅ النسبة اللي المستخدم بيكتبها
   const [currentPercentage, setCurrentPercentage] = useState(null); // ✅ النسبة الحالية من Firestore
+
+  useEffect(() => {
+    const checkLock = async() => {
+      const userName = localStorage.getItem('userName')
+      if(!userName) {
+        router.push('/')
+        return
+      }
+      const q = query(collection(db, 'users'), where('userName', '==', userName))
+      const querySnapshot = await getDocs(q)
+      if(!querySnapshot.empty) {
+        const user = querySnapshot.docs[0].data()
+        if(user.permissions.settings === true) {
+          alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
+          router.push('/')
+          return
+        }else {
+          setAuth(true)
+        }
+      }else {
+        router.push('/')
+        return
+      }
+      setLoading(false)
+    }
+    checkLock()
+  }, [])
 
   // ✅ جلب المستخدمين من Firestore
   const fetchUsers = async () => {
@@ -150,6 +181,9 @@ export default function Settings() {
     }
   };
 
+  if (loading) return <p>🔄 جاري التحقق...</p>;
+  if (!auth) return null;
+
   return (
     <div className={styles.settings}>
       <SideBar />
@@ -171,12 +205,6 @@ export default function Settings() {
             onClick={() => setActiveTab("usersActivations")}
           >
             تفعيلات المستخدمين
-          </button>
-          <button
-            className={activeTab === "balances" ? styles.active : ""}
-            onClick={() => setActiveTab("balances")}
-          >
-            الأرصدة
           </button>
           <button
             className={activeTab === "percentage" ? styles.active : ""}
