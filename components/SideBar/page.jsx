@@ -62,10 +62,15 @@ function SideBar({openSideBar, setOpenSideBar}) {
                     <span><GoGraph /></span>
                     <span>الارصدة</span>
                 </Link>
-                <Link href={'/https://cashatabod.netlify.app/'} className={styles.actionLinks}>
-                    <span><CiWallet/></span>
-                    <span>برنامج كاشات</span>
-                </Link>
+                <a 
+                href="https://cashatabod.netlify.app/" 
+                rel="noopener noreferrer" 
+                className={styles.actionLinks}
+                >
+                <span><CiWallet/></span>
+                <span>برنامج كاشات</span>
+                </a>
+
             </div>
             <div className={styles.logout}>
                 <Link href={'/settings'} className={styles.actionLinks}>
