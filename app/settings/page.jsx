@@ -2,17 +2,18 @@
 import { useState, useEffect } from "react";
 import SideBar from "@/components/SideBar/page";
 import styles from "./styles.module.css";
-import { collection, getDocs, doc, updateDoc, getDoc, setDoc, query, where } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, getDoc, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { VscPercentage } from "react-icons/vsc";
 import { useRouter } from "next/navigation";
 
 export default function Settings() {
-  const router = useRouter()
-  const [auth, setAuth] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const router = useRouter();
+  const [auth, setAuth] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("usersPermissions");
   const [users, setUsers] = useState([]);
+  const [employees, setEmployees] = useState([]); // ✅ الموظفين من Collection employees
   const [selectedUser, setSelectedUser] = useState("");
   const [permissions, setPermissions] = useState({
     phones: false,
@@ -25,37 +26,35 @@ export default function Settings() {
   });
 
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [percentage, setPercentage] = useState(""); // ✅ النسبة اللي المستخدم بيكتبها
-  const [currentPercentage, setCurrentPercentage] = useState(null); // ✅ النسبة الحالية من Firestore
+  const [employeePercentage, setEmployeePercentage] = useState(""); // ✅ نسبة الموظف الحالي
 
   useEffect(() => {
-    const checkLock = async() => {
-      const userName = localStorage.getItem('userName')
-      if(!userName) {
-        router.push('/')
-        return
+    const checkLock = async () => {
+      const userName = localStorage.getItem("userName");
+      if (!userName) {
+        router.push("/");
+        return;
       }
-      const q = query(collection(db, 'users'), where('userName', '==', userName))
-      const querySnapshot = await getDocs(q)
-      if(!querySnapshot.empty) {
-        const user = querySnapshot.docs[0].data()
-        if(user.permissions.settings === true) {
-          alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
-          router.push('/')
-          return
-        }else {
-          setAuth(true)
+      const q = query(collection(db, "users"), where("userName", "==", userName));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const user = querySnapshot.docs[0].data();
+        if (user.permissions.settings === true) {
+          alert("ليس لديك الصلاحية للوصول الى هذه الصفحة❌");
+          router.push("/");
+          return;
+        } else {
+          setAuth(true);
         }
-      }else {
-        router.push('/')
-        return
+      } else {
+        router.push("/");
+        return;
       }
-      setLoading(false)
-    }
-    checkLock()
-  }, [])
+      setLoading(false);
+    };
+    checkLock();
+  }, []);
 
-  // ✅ جلب المستخدمين من Firestore
   const fetchUsers = async () => {
     const querySnapshot = await getDocs(collection(db, "users"));
     const usersData = querySnapshot.docs.map((doc) => ({
@@ -65,27 +64,21 @@ export default function Settings() {
     setUsers(usersData);
   };
 
-  // ✅ تحميل النسبة الحالية من Firestore
-  const fetchPercentage = async () => {
-    try {
-      const docRef = doc(db, "percentage", "mainPercentage");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setCurrentPercentage(docSnap.data().value);
-      } else {
-        setCurrentPercentage(null);
-      }
-    } catch (error) {
-      console.error("Error fetching percentage:", error);
-    }
+  // ✅ جلب الموظفين من Collection employees
+  const fetchEmployees = async () => {
+    const querySnapshot = await getDocs(collection(db, "employees"));
+    const empData = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setEmployees(empData);
   };
 
   useEffect(() => {
     fetchUsers();
-    fetchPercentage();
+    fetchEmployees(); // ✅ تحميل الموظفين
   }, []);
 
-  // ✅ تحميل صلاحيات المستخدم عند اختياره
   useEffect(() => {
     const loadPermissions = async () => {
       if (!selectedUser) return;
@@ -96,18 +89,18 @@ export default function Settings() {
         if (userSnap.exists()) {
           const userData = userSnap.data();
 
-          // ✅ تحميل الصلاحيات
-          setPermissions(userData.permissions || {
-            phones: false,
-            products: false,
-            masrofat: false,
-            employees: false,
-            debts: false,
-            reports: false,
-            settings: false,
-          });
+          setPermissions(
+            userData.permissions || {
+              phones: false,
+              products: false,
+              masrofat: false,
+              employees: false,
+              debts: false,
+              reports: false,
+              settings: false,
+            }
+          );
 
-          // ✅ تحميل حالة التفعيل
           setIsSubscribed(userData.isSubscribed || false);
         }
       } catch (err) {
@@ -118,12 +111,10 @@ export default function Settings() {
     loadPermissions();
   }, [selectedUser]);
 
-  // ✅ تغيير الصلاحية
   const handlePermissionChange = (key) => {
     setPermissions((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // ✅ حفظ الصلاحيات
   const handleSavePermissions = async () => {
     if (!selectedUser) {
       alert("يرجى اختيار مستخدم أولًا");
@@ -141,7 +132,6 @@ export default function Settings() {
     }
   };
 
-  // ✅ تغيير حالة التفعيل
   const handleActivationChange = async () => {
     if (!selectedUser) {
       alert("يرجى اختيار مستخدم أولًا");
@@ -162,24 +152,53 @@ export default function Settings() {
     }
   };
 
-  // ✅ حفظ أو تحديث النسبة
-  const handleSavePercentage = async () => {
-    if (!percentage) {
-      alert("يرجى إدخال النسبة أولًا");
+  // ✅ جلب نسبة الموظف من Collection employees
+  const fetchEmployeePercentage = async (employeeId) => {
+    if (!employeeId) {
+      setEmployeePercentage("");
+      return;
+    }
+    try {
+      const empRef = doc(db, "employees", employeeId);
+      const empSnap = await getDoc(empRef);
+      if (empSnap.exists()) {
+        const data = empSnap.data();
+        setEmployeePercentage(data.percentage || "");
+      } else {
+        setEmployeePercentage("");
+      }
+    } catch (error) {
+      console.error("Error fetching employee percentage:", error);
+    }
+  };
+
+  // ✅ حفظ نسبة الموظف داخل Collection employees
+  const handleSaveEmployeePercentage = async () => {
+    if (!selectedUser) {
+      alert("يرجى اختيار الموظف أولًا");
+      return;
+    }
+    if (employeePercentage === "") {
+      alert("يرجى إدخال النسبة للموظف");
       return;
     }
 
     try {
-      const docRef = doc(db, "percentage", "mainPercentage");
-      await setDoc(docRef, { value: Number(percentage) }); // setDoc هيعمل إنشاء أو تحديث
-      alert("تم حفظ النسبة بنجاح ✅");
-      setPercentage("");
-      fetchPercentage();
+      const empRef = doc(db, "employees", selectedUser);
+      await updateDoc(empRef, { percentage: Number(employeePercentage) });
+      alert("تم حفظ نسبة الموظف بنجاح ✅");
+      fetchEmployees();
     } catch (error) {
-      console.error("Error saving percentage:", error);
+      console.error("Error saving employee percentage:", error);
       alert("حدث خطأ أثناء حفظ النسبة ❌");
     }
   };
+
+  useEffect(() => {
+    if (activeTab === "percentage" && selectedUser) {
+      fetchEmployeePercentage(selectedUser);
+    }
+  }, [selectedUser, activeTab]);
 
   if (loading) return <p>🔄 جاري التحقق...</p>;
   if (!auth) return null;
@@ -192,7 +211,6 @@ export default function Settings() {
           <h2>الإعدادات</h2>
         </div>
 
-        {/* ✅ الأزرار */}
         <div className={styles.tabs}>
           <button
             className={activeTab === "usersPermissions" ? styles.active : ""}
@@ -210,7 +228,7 @@ export default function Settings() {
             className={activeTab === "percentage" ? styles.active : ""}
             onClick={() => setActiveTab("percentage")}
           >
-            النسبة
+            نسبة الموظفين
           </button>
         </div>
 
@@ -296,38 +314,71 @@ export default function Settings() {
           </div>
         )}
 
-        {/* ✅ النسبة */}
+        {/* ✅ نسبة الموظفين */}
         {activeTab === "percentage" && (
           <div className={styles.container}>
             <div className={styles.contentContainer}>
+              <h4>نسبة كل موظف</h4>
               <div className={styles.top}>
-                <div className={styles.cardContainer}>
-                  <div className={styles.card}>
-                    <h4>النسبة الحالية</h4>
-                    <p>{currentPercentage !== null ? `${currentPercentage}%` : "لا توجد نسبة محفوظة"}</p>
-                  </div>
-                </div>
+                <select
+                  className="inputContainer"
+                  value={selectedUser}
+                  onChange={(e) => {
+                    setSelectedUser(e.target.value);
+                    fetchEmployeePercentage(e.target.value);
+                  }}
+                >
+                  <option value="">-- اختر الموظف --</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.name || "موظف بدون اسم"}
+                    </option>
+                  ))}
+                </select>
 
-                <div className="inputContainer">
-                  <label><VscPercentage /></label>
-                  <input
-                    type="number"
-                    placeholder="النسبة"
-                    value={percentage}
-                    onChange={(e) => setPercentage(e.target.value)}
-                  />
-                </div>
+                {selectedUser && (
+                  <>
+                    <div className={styles.cardContainer}>
+                      <div className={styles.card}>
+                        <h4>
+                          نسبة{" "}
+                          {employees.find((e) => e.id === selectedUser)?.name ||
+                            "الموظف"}
+                        </h4>
+                        <p>
+                          {employeePercentage !== ""
+                            ? `${employeePercentage}%`
+                            : "لا توجد نسبة محفوظة لهذا الموظف"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="inputContainer" style={{ marginTop: "15px" }}>
+                      <label>
+                        <VscPercentage />
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="نسبة الموظف"
+                        value={employeePercentage}
+                        onChange={(e) => setEmployeePercentage(e.target.value)}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
 
-              <button className={styles.saveBtn} onClick={handleSavePercentage}>
-                حفظ
+              <button
+                className={styles.saveBtn}
+                style={{ marginTop: "10px" }}
+                onClick={handleSaveEmployeePercentage}
+              >
+                حفظ نسبة الموظف
               </button>
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
 }
-

@@ -40,21 +40,16 @@ function EmployeeReports() {
         const empData = snapshot.docs[0].data();
         setEmployee(empData);
         setSalary(parseFloat(empData.salary) || 0);
+
+        // ✅ جلب النسبة الخاصة بالموظف من بياناته
+        setPercentage(parseFloat(empData.percentage) || 0);
       }
     });
 
-    // ✅ جلب نسبة العمولة
-    const percentQuery = query(collection(db, "percentage"));
-    const unsubscribePercent = onSnapshot(percentQuery, (snapshot) => {
-      if (!snapshot.empty) {
-        const percentData = snapshot.docs[0].data();
-        setPercentage(parseFloat(percentData.value) || 0);
-      }
-    });
+    // ❌ تم حذف كود النسبة العامة لأنه لم يعد مستخدمًا
 
     return () => {
       unsubscribeEmp();
-      unsubscribePercent();
     };
   }, [id]);
 
