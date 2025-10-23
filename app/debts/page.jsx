@@ -15,6 +15,7 @@ import {
   doc,
   query,
   where,
+  getDocs
 } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
