@@ -49,7 +49,7 @@ function Reports() {
       const querySnapshot = await getDocs(q)
       if(!querySnapshot.empty) {
         const user = querySnapshot.docs[0].data()
-        if(user.permissions.reports === true) {
+        if(user.permissions?.reports === true) {
           alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
           router.push('/')
           return

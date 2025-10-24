@@ -49,7 +49,7 @@ function Debts() {
         const querySnapshot = await getDocs(q)
         if(!querySnapshot.empty) {
           const user = querySnapshot.docs[0].data()
-          if(user.permissions.debts === true) {
+          if(user.permissions?.debts === true) {
             alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
             router.push('/')
             return

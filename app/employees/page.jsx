@@ -41,7 +41,7 @@ function Employees() {
       const querySnapshot = await getDocs(q)
       if(!querySnapshot.empty) {
         const user = querySnapshot.docs[0].data()
-        if(user.permissions.employees === true) {
+        if(user.permissions?.employees === true) {
           alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
           router.push('/')
           return

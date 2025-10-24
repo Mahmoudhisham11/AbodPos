@@ -76,7 +76,7 @@ function Phones() {
       const querySnapshot = await getDocs(q)
       if(!querySnapshot.empty) {
         const user = querySnapshot.docs[0].data()
-        if(user.permissions.phones === true) {
+        if(user.permissions?.phones === true) {
           alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
           router.push('/')
           return

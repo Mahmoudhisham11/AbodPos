@@ -30,7 +30,7 @@ function Masrofat() {
       const querySnapshot = await getDocs(q)
       if(!querySnapshot.empty) {
         const user = querySnapshot.docs[0].data()
-        if(user.permissions.masrofat === true) {
+        if(user.permissions?.masrofat === true) {
           alert('ليس ليدك الصلاحية للوصول الى هذه الصفحة❌')
           router.push('/')
           return

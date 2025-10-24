@@ -39,7 +39,7 @@ export default function Settings() {
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
         const user = querySnapshot.docs[0].data();
-        if (user.permissions.settings === true) {
+        if (user.permissions?.settings === true) {
           alert("ليس لديك الصلاحية للوصول الى هذه الصفحة❌");
           router.push("/");
           return;
