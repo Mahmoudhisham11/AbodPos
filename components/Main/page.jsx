@@ -172,16 +172,18 @@ function Main() {
   const finalTotal = Math.max(0, subtotal - appliedDiscount);
 
   const filteredProducts = products.filter((p) => {
-    const search = searchCode.trim().toLowerCase();
-    const matchName = search === "" || (p.code && p.code.toString().toLowerCase().includes(search)) || (p.name && p.name.toString().toLowerCase().includes(search));
-    const matchType =
-      filterType === "all"
-        ? true
-        : filterType === "phone"
-          ? p.type === "phone"
-          : p.type !== "phone";
-    return matchName && matchType;
-  });
+  const search = searchCode.trim().toLowerCase();
+  const matchCode = p.code?.toString().toLowerCase().includes(search);
+  const matchName = p.name?.toLowerCase().includes(search);
+  const matchType =
+    filterType === "all"
+      ? true
+      : filterType === "phone"
+        ? p.type === "phone"
+        : p.type !== "phone";
+  return (matchCode || matchName) && matchType;
+});
+
 
   const phonesCount = products.filter(p => p.type === "phone").length;
   const otherCount = products.filter(p => p.type !== "phone").length;
