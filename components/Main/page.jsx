@@ -189,21 +189,25 @@ function Main() {
   const otherCount = products.filter(p => p.type !== "phone").length;
 
   useEffect(() => {
-    if (!searchCode || !shop) return;
+  if (!searchCode || !shop) return;
 
-    const timer = setTimeout(async () => {
-      const foundProduct = products.find(p => p.code?.toString() === searchCode.trim());
-      if (foundProduct) {
-        const alreadyInCart = cart.some(item => item.code === foundProduct.code);
-        if (!alreadyInCart) {
-          await handleAddToCart(foundProduct);
-          setSearchCode("");
-        }
+  const timer = setTimeout(async () => {
+    const search = searchCode.trim().toLowerCase();
+    const foundProduct = products.find(
+      p => p.code?.toString().toLowerCase() === search || p.name?.toLowerCase() === search
+    );
+    if (foundProduct) {
+      const alreadyInCart = cart.some(item => item.code === foundProduct.code);
+      if (!alreadyInCart) {
+        await handleAddToCart(foundProduct);
+        setSearchCode("");
       }
-    }, 400);
+    }
+  }, 400);
 
-    return () => clearTimeout(timer);
-  }, [searchCode, products, cart, shop]);
+  return () => clearTimeout(timer);
+}, [searchCode, products, cart, shop]);
+
 
   const handleApplyDiscount = () => {
     const numeric = Number(discountInput) || 0;
