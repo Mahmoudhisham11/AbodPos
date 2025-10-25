@@ -173,7 +173,7 @@ function Main() {
 
   const filteredProducts = products.filter((p) => {
     const search = searchCode.trim().toLowerCase();
-    const matchName = search === "" || (p.code && p.code.toString().toLowerCase().includes(search));
+    const matchName = search === "" || (p.code && p.code.toString().toLowerCase().includes(search)) || (p.name && p.name.toString().toLowerCase().includes(search));
     const matchType =
       filterType === "all"
         ? true
