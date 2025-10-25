@@ -410,6 +410,7 @@ function Reports() {
             <div className="inputContainer">
               <input
                 type="date"
+                lang="en"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
               />
@@ -417,6 +418,7 @@ function Reports() {
             <div className="inputContainer">
               <input
                 type="date"
+                lang="en"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
               />
