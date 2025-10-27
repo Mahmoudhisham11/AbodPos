@@ -15,6 +15,7 @@ import { IoPersonOutline } from "react-icons/io5";
 import { CiWallet } from "react-icons/ci";
 import { IoIosCloseCircle } from "react-icons/io";
 import { GoGraph } from "react-icons/go";
+import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
 
 function SideBar({openSideBar, setOpenSideBar}) {
     const handleLogout = () => {
@@ -57,6 +58,10 @@ function SideBar({openSideBar, setOpenSideBar}) {
                 <Link href={'/reports'} className={styles.actionLinks}>
                     <span><TbReportSearch/></span>
                     <span>التقارير</span>
+                </Link>
+                <Link href={'/PurchaseInvoicePage'} className={styles.actionLinks}>
+                    <span><LiaFileInvoiceDollarSolid /></span>
+                    <span>الفواتير</span>
                 </Link>
                 <Link href={'/balance'} className={styles.actionLinks}>
                     <span><GoGraph /></span>

@@ -41,12 +41,10 @@ export default function Balance() {
   const [operations, setOperations] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Popups state
   const [showBalancePopup, setShowBalancePopup] = useState(false);
   const [balanceDirection, setBalanceDirection] = useState("increase");
   const [balanceAmount, setBalanceAmount] = useState("");
   const [balanceNote, setBalanceNote] = useState("");
-  const [editingBalance, setEditingBalance] = useState(false);
 
   const [showOperationPopup, setShowOperationPopup] = useState(false);
   const [operationAmount, setOperationAmount] = useState("");
@@ -60,11 +58,9 @@ export default function Balance() {
     maintenance: "رصيد الصيانة",
   };
 
+  // تحميل الأرصدة والعمليات
   useEffect(() => {
-    if (!shop) {
-      console.warn("shop not found in localStorage");
-      return;
-    }
+    if (!shop) return;
 
     const balancesDocRef = doc(db, "balances", shop);
 
@@ -76,7 +72,7 @@ export default function Balance() {
           main: 0,
           phones: 0,
           accessories: 0,
-          maintenance: 0
+          maintenance: 0,
         });
       }
     };
@@ -118,6 +114,118 @@ export default function Balance() {
     };
   }, [shop]);
 
+  // ======================================================
+  // ✅ تلقائي: الاستماع لإضافات الفواتير في collection "dailySales"
+  // عند إضافة فاتورة جديدة (save in Main -> addDoc to dailySales)
+  // نحسب مجموع موبايلات و مجموع اكسسوارات ونحدث الرصيد
+  // ونعلّم الفاتورة processedForBalance: true حتى لا نكررها
+  // ======================================================
+  useEffect(() => {
+    if (!shop) return;
+
+    const salesQuery = query(collection(db, "dailySales"), where("shop", "==", shop));
+    const unsubSales = onSnapshot(salesQuery, async (snapshot) => {
+      try {
+        for (const change of snapshot.docChanges()) {
+          if (change.type !== "added") continue;
+
+          const saleDoc = change.doc;
+          const saleData = saleDoc.data();
+
+          // إذا كانت مُعالجة سابقًا نتخطى
+          if (saleData.processedForBalance) continue;
+
+          const cart = Array.isArray(saleData.cart) ? saleData.cart : [];
+          if (cart.length === 0) {
+            // فقط نعلّم المستند كمُعالج حتى لا نحاول مرّة تانية
+            await updateDoc(saleDoc.ref, { processedForBalance: true }).catch(() => {});
+            continue;
+          }
+
+          // حساب المجموع لكل نوع (سعر × كمية)
+          let phoneTotal = 0;
+          let accessoryTotal = 0;
+          cart.forEach(item => {
+            const qty = Number(item.quantity || 1);
+            const price = Number(item.sellPrice || 0);
+            const sum = price * qty;
+            if (item.type === "phone") phoneTotal += sum;
+            else accessoryTotal += sum; // أي منتج ليس phone نعتبره اكسسوار/منتج
+          });
+
+          // لو مفيش شيء للتحديث، علم الفاتورة وتجاوز
+          if (phoneTotal === 0 && accessoryTotal === 0) {
+            await updateDoc(saleDoc.ref, { processedForBalance: true }).catch(() => {});
+            continue;
+          }
+
+          // جلب الرصيد الحالي ثم التحديث (آمن)
+          const balancesRef = doc(db, "balances", shop);
+          const balSnap = await getDoc(balancesRef);
+          if (!balSnap.exists()) {
+            // أنشئ وثيقة إن احتاج
+            await setDoc(balancesRef, {
+              shop,
+              main: 0,
+              phones: 0,
+              accessories: 0,
+              maintenance: 0,
+            });
+          }
+          const current = (balSnap.exists() ? balSnap.data() : {});
+          const newPhones = (Number(current.phones || 0) + Number(phoneTotal || 0));
+          const newAccessories = (Number(current.accessories || 0) + Number(accessoryTotal || 0));
+
+          const updates = {};
+          if (phoneTotal > 0) updates.phones = newPhones;
+          if (accessoryTotal > 0) updates.accessories = newAccessories;
+
+          if (Object.keys(updates).length > 0) {
+            await updateDoc(balancesRef, updates);
+          }
+
+          // سجّل العملية في balanceOperations
+          const now = Timestamp.now();
+          if (phoneTotal > 0) {
+            await addDoc(collection(db, "balanceOperations"), {
+              shop,
+              type: "phones",
+              direction: "increase",
+              amount: phoneTotal,
+              note: "زيادة تلقائية من بيع موبايلات",
+              date: now,
+              createdBy: saleData.employee || saleData.createdBy || "auto",
+            });
+          }
+          if (accessoryTotal > 0) {
+            await addDoc(collection(db, "balanceOperations"), {
+              shop,
+              type: "accessories",
+              direction: "increase",
+              amount: accessoryTotal,
+              note: "زيادة تلقائية من بيع منتجات/اكسسوار",
+              date: now,
+              createdBy: saleData.employee || saleData.createdBy || "auto",
+            });
+          }
+
+          // علم الفاتورة كمُعالجة حتى لا تُعالج مرة أخرى
+          await updateDoc(saleDoc.ref, { processedForBalance: true }).catch((e) => {
+            console.warn("failed to mark sale processedForBalance:", e);
+          });
+        }
+      } catch (err) {
+        console.error("Error processing dailySales changes for balances:", err);
+      }
+    }, (err) => {
+      console.error("dailySales onSnapshot error:", err);
+    });
+
+    return () => unsubSales();
+  }, [shop]);
+
+  // ==================== باقي وظائف تعديل الرصيد والعمليات (كما في كودك) ====================
+
   const handleSaveOperation = async () => {
     if (!shop) {
       alert("المحل غير معروف، الرجاء إعادة الدخول");
@@ -129,7 +237,7 @@ export default function Balance() {
     }
 
     const amt = Number(operationAmount);
-    const type = activeTab; // ✅ نستخدم نوع التبويب الحالي تلقائياً
+    const type = activeTab; // نستخدم نوع التبويب الحالي تلقائياً
     try {
       if (editingOperationId) {
         const ref = doc(db, "balanceOperations", editingOperationId);
@@ -144,7 +252,7 @@ export default function Balance() {
         await addDoc(collection(db, "balanceOperations"), {
           shop,
           type,
-          direction: "increase", // افتراضياً العملية تعتبر زيادة فقط
+          direction: "increase",
           amount: amt,
           note: operationNote || "عملية جديدة",
           date: Timestamp.now(),
@@ -258,6 +366,7 @@ export default function Balance() {
     );
   }
 
+  // ======================= واجهة المستخدم (كما كانت) =======================
   return (
     <div className={styles.balance}>
       <SideBar />

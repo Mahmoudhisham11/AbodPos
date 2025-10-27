@@ -1,0 +1,288 @@
+/* ================================
+   الأساسيات العامة للصفحة
+================================ */
+.page {
+  display: flex;
+  min-height: 100vh;
+  background: #f7f8fa;
+  font-family: 'Cairo', sans-serif;
+  direction: rtl;
+}
+
+.content {
+  flex: 1;
+  padding: 25px 3%;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  overflow: hidden;
+}
+
+/* ================================
+   العناوين والأزرار
+================================ */
+.title {
+  font-size: 26px;
+  color: #333;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2563eb;
+  color: #fff;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+.addBtn:hover {
+  background: #1d4ed8;
+}
+
+/* ================================
+   الجدول العام للفواتير والمنتجات
+================================ */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.table th,
+.table td {
+  padding: 14px 12px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  font-size: 15px;
+}
+
+.table th {
+  background: #f1f5f9;
+  font-weight: 700;
+  color: #444;
+}
+
+.table tr:hover td {
+  background: #f9fafb;
+}
+
+/* ================================
+   أزرار الحذف والتعديل
+================================ */
+.editBtn,
+.deleteBtn {
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 16px;
+  margin: 0 3px;
+  transition: 0.3s;
+}
+
+.editBtn {
+  background: #10b981;
+  color: white;
+}
+
+.editBtn:hover {
+  background: #059669;
+}
+
+.deleteBtn {
+  background: #ef4444;
+  color: white;
+}
+
+.deleteBtn:hover {
+  background: #dc2626;
+}
+
+/* ================================
+   Popup
+================================ */
+.popupOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.popup {
+  background: #fff;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 14px;
+  padding: 25px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.3s ease;
+}
+
+.popupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.popupHeader h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.closeIcon {
+  font-size: 24px;
+  cursor: pointer;
+  color: #555;
+  transition: 0.2s;
+}
+
+.closeIcon:hover {
+  color: #ef4444;
+}
+
+/* ================================
+   البحث عن المنتجات
+================================ */
+.searchInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 15px;
+  transition: 0.3s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ================================
+   قائمة المنتجات داخل الـ Popup
+================================ */
+.productsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.productCard {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.productCard:hover {
+  background: #e0f2fe;
+  border-color: #93c5fd;
+  transform: translateY(-3px);
+}
+
+.productCard h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.productCard p {
+  color: #555;
+  font-size: 14px;
+  margin: 2px 0;
+}
+
+/* ================================
+   المنتجات المختارة
+================================ */
+.selectedItems {
+  margin-top: 25px;
+}
+
+.selectedItems h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.qtyInput {
+  width: 60px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.qtyInput:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+/* ================================
+   زر الحفظ
+================================ */
+.saveBtn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 15px;
+  transition: 0.3s;
+  width: 100%;
+}
+
+.saveBtn:hover {
+  background: #1e40af;
+}
+
+/* ================================
+   أنيميشن خفيفة للـ Popup
+================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
